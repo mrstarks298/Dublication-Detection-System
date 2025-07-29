@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced FAISS-Optimized Cross-File Duplicate Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .optimization-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .feature-highlight {
+            background: linear-gradient(135deg, #00b894, #00a085);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .feature-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .feature-item h4 {
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .feature-item p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .storage-info {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .storage-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .storage-stat {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px dashed #ddd;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .cross-check-btn {
+            background: linear-gradient(135deg, #fd79a8, #e84393);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e8;
+            border-radius: 10px;
+            color: #2e7d32;
+        }
+
+        .settings {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .setting-group {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .setting-group h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .threshold-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .process-btn, .cross-check-process-btn {
+            color: white;
+            padding: 18px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2em;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .process-btn {
+            background: linear-gradient(135deg, #00b894, #00a085);
+        }
+
+        .cross-check-process-btn {
+            background: linear-gradient(135deg, #fd79a8, #e84393);
+        }
+
+        .process-btn:disabled, .cross-check-process-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .result-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .result-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .download-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .download-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+            font-size: 0.9em;
+        }
+
+        .download-btn.csv {
+            background: linear-gradient(135deg, #00b894, #00a085);
+        }
+
+        .download-btn.json {
+            background: linear-gradient(135deg, #fd79a8, #e84393);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .duplicate-preview {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .duplicate-item {
+            background: #f8f9fa;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .duplicate-item.cross-file {
+            border-left-color: #e74c3c;
+            background: #fdf2f2;
+        }
+
+        .duplicate-type-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .internal-duplicate {
+            background: #3498db;
+            color: white;
+        }
+
+        .cross-file-duplicate {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .similarity-score {
+            background: #e3f2fd;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #1976d2;
+            font-weight: bold;
+        }
+
+        .processing-stages {
+            margin-top: 20px;
+        }
+
+        .stage {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .stage.active {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .stage.completed {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .stage-icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .enhanced-stats {
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .enhanced-stats h3 {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .comparison-table {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .comparison-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .faiss-badge {
+            background: linear-gradient(135deg, #fd79a8, #e84393);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .csv-badge {
+            background: linear-gradient(135deg, #00b894, #00a085);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .performance-improvement {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .cross-check-results {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .cross-check-preview {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .cross-check-item {
+            background: #fff3e0;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ff9800;
+        }
+
+        .match-type-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .exact-match {
+            background: #f44336;
+            color: white;
+        }
+
+        .near-match {
+            background: #ff9800;
+            color: white;
+        }
+
+        .semantic-match {
+            background: #2196f3;
+            color: white;
+        }
+
+        .tab-container {
+            margin-bottom: 30px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 5px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Enhanced FAISS-Optimized Duplicate Detection</h1>
+            <p>Ultra-fast semantic similarity with organized outputs & cross-checking</p>
+            <div class="optimization-badge">
+                ⚡ FAISS-Powered • CSV/JSON Export • Cross-File Analysis
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="feature-highlight">
+                <h3>🎯 New Enhanced Features</h3>
+                <p>Organized storage, CSV exports, and comprehensive cross-checking capabilities</p>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <h4>📁 Organized Storage</h4>
+                        <p>Separate folders for unique questions, duplicates, and embeddings</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>📊 CSV Export</h4>
+                        <p>Download all results in CSV format with embeddings</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>🔍 Cross-Check</h4>
+                        <p>Compare against all previously stored embeddings</p>
+                    </div>
+                    <div class="feature-item">
+                        <h4>⚡ FAISS Speed</h4>
+                        <p>Up to 200x faster processing with vector indexing</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="storage-info" id="storageInfo">
+                <h3>📂 Storage Information</h3>
+                <p>Loading storage information...</p>
+                <div class="storage-stats" id="storageStats"></div>
+            </div>
+
+            <div class="upload-section">
+                <h2>📁 Upload Questions File</h2>
+                <p>Drop your JSON file here or click to browse</p>
+                <p style="font-size: 0.9em; color: #666; margin-top: 10px;">
+                    Choose between <strong>Duplicate Processing</strong> (save unique questions) or <strong>Cross-Check</strong> (compare against existing database)
+                </p>
+                <input type="file" id="fileInput" class="file-input" accept=".json">
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    Choose File
+                </button>
+                <div id="fileInfo" class="file-info" style="display: none;"></div>
+            </div>
+
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" onclick="switchTab('process')">
+                        🔄 Duplicate Processing
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('crosscheck')">
+                        🔍 Cross-Check Analysis
+                    </button>
+                </div>
+
+                <div id="processTab" class="tab-content active">
+                    <div class="settings">
+                        <div class="setting-group">
+                            <h3>🎯 Question Similarity Thresholds</h3>
+                            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">
+                                Configure similarity thresholds for duplicate detection
+                            </p>
+                            <label>Near Duplicate Threshold:</label>
+                            <input type="number" class="threshold-input" id="nearDuplicateThreshold" 
+                                   value="0.85" min="0" max="1" step="0.01">
+                            <small style="color: #666;">Questions with similarity ≥ 85% are considered near duplicates</small>
+                            
+                            <label style="margin-top: 10px;">Semantic Duplicate Threshold:</label>
+                            <input type="number" class="threshold-input" id="semanticDuplicateThreshold" 
+                                   value="0.70" min="0" max="1" step="0.01">
+                            <small style="color: #666;">Questions with similarity ≥ 70% are considered semantic duplicates</small>
+                        </div>
+
+                        <div class="setting-group">
+                            <h3>📁 Organized Output Structure</h3>
+                            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; color: #1976d2;">
+                                <h4>Output folders created:</h4>
+                                <ul style="margin: 10px 0; padding-left: 20px;">
+                                    <li>📁 <strong>unique_questions/</strong> - JSON & CSV files</li>
+                                    <li>📁 <strong>duplicates/</strong> - JSON & CSV reports</li>
+                                    <li>📁 <strong>embeddings/</strong> - CSV with embeddings</li>
+                                </ul>
+                                <p style="margin-top: 10px; font-size: 0.9em;">
+                                    All files named based on your uploaded file (e.g., unique_math_questions.json)
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="process-btn" id="processBtn" onclick="processFile()" disabled>
+                        🚀 Process File & Create Organized Output
+                    </button>
+                </div>
+
+                <div id="crosscheckTab" class="tab-content">
+                    <div class="settings">
+                        <div class="setting-group">
+                            <h3>🔍 Cross-Check Configuration</h3>
+                            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">
+                                Compare uploaded questions against all existing embeddings in the database
+                            </p>
+                            <label>Near Match Threshold:</label>
+                            <input type="number" class="threshold-input" id="crossCheckNearThreshold" 
+                                   value="0.85" min="0" max="1" step="0.01">
+                            <small style="color: #666;">Questions with similarity ≥ 85% are considered near matches</small>
+                            
+                            <label style="margin-top: 10px;">Semantic Match Threshold:</label>
+                            <input type="number" class="threshold-input" id="crossCheckSemanticThreshold" 
+                                   value="0.70" min="0" max="1" step="0.01">
+                            <small style="color: #666;">Questions with similarity ≥ 70% are considered semantic matches</small>
+                        </div>
+
+                        <div class="setting-group">
+                            <h3>📊 Cross-Check Output</h3>
+                            <div style="background: #fff3e0; padding: 15px; border-radius: 8px; color: #f57f17;">
+                                <h4>Generated reports include:</h4>
+                                <ul style="margin: 10px 0; padding-left: 20px;">
+                                    <li>📋 New Question ID & Text</li>
+                                    <li>🔗 Matching Question ID & Text</li>
+                                    <li>📊 Similarity Score & Match Type</li>
+                                    <li>📁 Source File Information</li>
+                                </ul>
+                                <p style="margin-top: 10px; font-size: 0.9em;">
+                                    Available in both CSV and JSON formats for easy analysis
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="cross-check-process-btn" id="crossCheckBtn" onclick="performCrossCheck()" disabled>
+                        🔍 Perform Cross-Check Analysis
+                    </button>
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p id="loadingText">Processing your questions with FAISS optimization...</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div id="progressText">Initializing FAISS...</div>
+                
+                <div class="processing-stages" id="processingStages">
+                    <div class="stage" id="stage1">
+                        <span class="stage-icon">⏳</span>
+                        <span id="stage1Text">Building FAISS index for internal duplicates</span>
+                    </div>
+                    <div class="stage" id="stage2">
+                        <span class="stage-icon">⏳</span>
+                        <span id="stage2Text">Loading existing unique questions</span>
+                    </div>
+                    <div class="stage" id="stage3">
+                        <span class="stage-icon">⏳</span>
+                        <span id="stage3Text">FAISS cross-file duplicate search</span>
+                    </div>
+                    <div class="stage" id="stage4">
+                        <span class="stage-icon">⏳</span>
+                        <span id="stage4Text">Saving organized results to storage</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="enhanced-stats" id="enhancedStats" style="display: none;">
+                <h3>📊 FAISS-Optimized Processing Results</h3>
+                <div class="comparison-table">
+                    <div class="comparison-item">
+                        <div style="font-size: 2em; font-weight: bold;" id="totalQuestions">0</div>
+                        <div>Total Questions</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div style="font-size: 2em; font-weight: bold;" id="finalUniqueQuestions">0</div>
+                        <div>Final Unique Questions</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div style="font-size: 2em; font-weight: bold;" id="internalDuplicates">0</div>
+                        <div>Internal Duplicates</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div style="font-size: 2em; font-weight: bold;" id="crossFileDuplicates">0</div>
+                        <div>Cross-File Duplicates</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div style="font-size: 2em; font-weight: bold;" id="existingFilesChecked">0</div>
+                        <div>Existing Files Checked</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div style="font-size: 2em; font-weight: bold;" id="processingTime">0s</div>
+                        <div>Processing Time</div>
+                    </div>
+                </div>
+                <div class="performance-improvement" id="performanceImprovement" style="display: none;">
+                    Performance Improvement: Loading...
+                </div>
+            </div>
+
+            <div class="results" id="results">
+                <div class="result-section">
+                    <h3>📋 Current File Unique Questions <span class="faiss-badge">FAISS</span> <span class="csv-badge">CSV</span></h3>
+                    <p>Unique questions from current file after FAISS-powered duplicate removal</p>
+                    <div class="download-grid">
+                        <div class="download-item">
+                            <h4>JSON Format</h4>
+                            <button class="download-btn json" id="downloadUniqueJson">
+                                📄 Download JSON
+                            </button>
+                        </div>
+                        <div class="download-item">
+                            <h4>CSV Format</h4>
+                            <p style="font-size: 0.8em; color: #666;">Includes embeddings</p>
+                            <button class="download-btn csv" id="downloadUniqueCsv">
+                                📊 Download CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-section">
+                    <h3>🔄 Duplicate Report <span class="faiss-badge">FAISS</span> <span class="csv-badge">CSV</span></h3>
+                    <p>Detailed analysis of internal and cross-file duplicates found with FAISS</p>
+                    <div class="download-grid">
+                        <div class="download-item">
+                            <h4>JSON Format</h4>
+                            <button class="download-btn json" id="downloadDuplicatesJson">
+                                📄 Download JSON
+                            </button>
+                        </div>
+                        <div class="download-item">
+                            <h4>CSV Format</h4>
+                            <p style="font-size: 0.8em; color: #666;">Spreadsheet friendly</p>
+                            <button class="download-btn csv" id="downloadDuplicatesCsv">
+                                📊 Download CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-section">
+                    <h3>🌟 Master Unique Collection <span class="faiss-badge">Ultra Fast</span> <span class="csv-badge">CSV</span></h3>
+                    <p>All unique questions from all FAISS-processed files combined</p>
+                    <div class="download-grid">
+                        <div class="download-item">
+                            <h4>JSON Format</h4>
+                            <button class="download-btn json" id="downloadMasterUniqueJson">
+                                📄 Download JSON
+                            </button>
+                        </div>
+                        <div class="download-item">
+                            <h4>CSV Format</h4>
+                            <p style="font-size: 0.8em; color: #666;">Complete database</p>
+                            <button class="download-btn csv" id="downloadMasterUniqueCsv">
+                                📊 Download CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cross-check-results" id="crossCheckResults">
+                <div class="enhanced-stats">
+                    <h3>🔍 Cross-Check Analysis Results</h3>
+                    <div class="comparison-table">
+                        <div class="comparison-item">
+                            <div style="font-size: 2em; font-weight: bold;" id="totalUploadedQuestions">0</div>
+                            <div>Uploaded Questions</div>
+                        </div>
+                        <div class="comparison-item">
+                            <div style="font-size: 2em; font-weight: bold;" id="totalMatchesFound">0</div>
+                            <div>Matches Found</div>
+                        </div>
+                        <div class="comparison-item">
+                            <div style="font-size: 2em; font-weight: bold;" id="crossCheckProcessingTime">0s</div>
+                            <div>Processing Time</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-section">
+                    <h3>🔍 Cross-Check Report <span class="faiss-badge">FAISS</span> <span class="csv-badge">CSV</span></h3>
+                    <p>Comparison results against existing database with similarity scores</p>
+                    <div class="download-grid">
+                        <div class="download-item">
+                            <h4>JSON Format</h4>
+                            <button class="download-btn json" id="downloadCrossCheckJson">
+                                📄 Download JSON
+                            </button>
+                        </div>
+                        <div class="download-item">
+                            <h4>CSV Format</h4>
+                            <p style="font-size: 0.8em; color: #666;">Spreadsheet analysis</p>
+                            <button class="download-btn csv" id="downloadCrossCheckCsv">
+                                📊 Download CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="duplicate-preview" id="duplicatePreview" style="display: none;">
+                <h3>🔍 Found Duplicates Preview <span class="faiss-badge">FAISS Detected</span></h3>
+                <div id="duplicateList"></div>
+            </div>
+
+            <div class="cross-check-preview" id="crossCheckPreview" style="display: none;">
+                <h3>🔍 Cross-Check Matches Preview <span class="faiss-badge">FAISS Detected</span></h3>
+                <div id="crossCheckList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let uploadedData = null;
+        let uploadedFilename = null;
+        let processedResult = null;
+        let crossCheckResult = null;
+
+        // Load storage information on page load
+        document.addEventListener('DOMContentLoaded', loadStorageInfo);
+
+        async function loadStorageInfo() {
+            try {
+                const response = await fetch('/storage-info');
+                const data = await response.json();
+                
+                if (data.error) {
+                    document.getElementById('storageInfo').innerHTML = `
+                        <h3>📂 Storage Information</h3>
+                        <p style="color: #e74c3c;">Error loading storage info: ${data.error}</p>
+                    `;
+                    return;
+                }
+
+                const optimizationBadge = data.optimization === 'FAISS-enabled' ? 
+                    '<span class="faiss-badge">FAISS Enabled</span>' : '';
+
+                document.getElementById('storageStats').innerHTML = `
+                    <div class="storage-stat">
+                        <div style="font-size: 1.5em; font-weight: bold;">${data.unique_json_files}</div>
+                        <div>Unique JSON Files</div>
+                    </div>
+                    <div class="storage-stat">
+                        <div style="font-size: 1.5em; font-weight: bold;">${data.unique_csv_files}</div>
+                        <div>Unique CSV Files</div>
+                    </div>
+                    <div class="storage-stat">
+                        <div style="font-size: 1.5em; font-weight: bold;">${data.duplicate_json_files}</div>
+                        <div>Duplicate JSON Reports</div>
+                    </div>
+                    <div class="storage-stat">
+                        <div style="font-size: 1.5em; font-weight: bold;">${data.duplicate_csv_files}</div>
+                        <div>Duplicate CSV Reports</div>
+                    </div>
+                    <div class="storage-stat">
+                        <div style="font-size: 1.5em; font-weight: bold;">${data.embeddings_files}</div>
+                        <div>Embedding Files</div>
+                    </div>
+                    <div class="storage-stat">
+                        <div style="font-size: 1.5em; font-weight: bold;">${data.total_unique_questions}</div>
+                        <div>Total Unique Questions</div>
+                    </div>
+                `;
+
+                document.getElementById('storageInfo').innerHTML = `
+                    <h3>📂 Enhanced Storage Information ${optimizationBadge}</h3>
+                    <p>Organized storage with ${data.total_unique_questions} unique questions across all formats</p>
+                    <div class="storage-stats" id="storageStats">${document.getElementById('storageStats').innerHTML}</div>
+                `;
+
+            } catch (error) {
+                console.error('Error loading storage info:', error);
+                document.getElementById('storageInfo').innerHTML = `
+                    <h3>📂 Storage Information</h3>
+                    <p style="color: #e74c3c;">Failed to load storage information</p>
+                `;
+            }
+        }
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+
+            // Reset results
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('crossCheckResults').style.display = 'none';
+            document.getElementById('duplicatePreview').style.display = 'none';
+            document.getElementById('crossCheckPreview').style.display = 'none';
+            document.getElementById('enhancedStats').style.display = 'none';
+        }
+
+        // File upload handling
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        async function handleFile(file) {
+            if (!file.name.endsWith('.json')) {
+                alert('Please upload a JSON file');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    alert('Error: ' + result.error);
+                    return;
+                }
+
+                uploadedData = result.data;
+                uploadedFilename = result.filename;
+
+                const optimizationInfo = result.optimization === 'FAISS-enabled' ? 
+                    '<br>⚡ FAISS optimization enabled for ultra-fast processing<br>📁 Organized output structure ready' : '';
+
+                document.getElementById('fileInfo').innerHTML = `
+                    ✅ File loaded successfully<br>
+                    📊 ${result.question_count} questions found<br>
+                    📁 Filename: ${result.filename}${optimizationInfo}
+                `;
+                document.getElementById('fileInfo').style.display = 'block';
+                document.getElementById('processBtn').disabled = false;
+                document.getElementById('crossCheckBtn').disabled = false;
+
+            } catch (error) {
+                alert('Error uploading file: ' + error.message);
+            }
+        }
+
+        function updateStage(stageId, status) {
+            const stage = document.getElementById(stageId);
+            const icon = stage.querySelector('.stage-icon');
+            
+            stage.classList.remove('active', 'completed');
+            
+            if (status === 'active') {
+                stage.classList.add('active');
+                icon.textContent = '⚡';
+            } else if (status === 'completed') {
+                stage.classList.add('completed');
+                icon.textContent = '✅';
+            } else {
+                icon.textContent = '⏳';
+            }
+        }
+
+        async function processFile() {
+            if (!uploadedData) return;
+
+            const startTime = Date.now();
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('processBtn').disabled = true;
+
+            // Update loading text and stages for processing
+            document.getElementById('loadingText').textContent = 'Processing your questions with FAISS optimization and creating organized output...';
+            document.getElementById('stage1Text').textContent = 'Building FAISS index for internal duplicates';
+            document.getElementById('stage2Text').textContent = 'Loading existing unique questions';
+            document.getElementById('stage3Text').textContent = 'FAISS cross-file duplicate search';
+            document.getElementById('stage4Text').textContent = 'Saving organized results to storage';
+
+            // Reset all stages
+            for (let i = 1; i <= 4; i++) {
+                updateStage(`stage${i}`, 'pending');
+            }
+
+            try {
+                updateStage('stage1', 'active');
+                document.getElementById('progressText').textContent = 'Building FAISS index for internal duplicates...';
+                document.getElementById('progressFill').style.width = '25%';
+
+                const requestData = {
+                    data: uploadedData,
+                    filename: uploadedFilename,
+                    nearDuplicateThreshold: document.getElementById('nearDuplicateThreshold').value,
+                    semanticDuplicateThreshold: document.getElementById('semanticDuplicateThreshold').value
+                };
+
+                const response = await fetch('/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+
+                // Update stages as completed
+                updateStage('stage1', 'completed');
+                updateStage('stage2', 'completed');
+                updateStage('stage3', 'completed');
+                updateStage('stage4', 'completed');
+
+                document.getElementById('progressFill').style.width = '100%';
+                document.getElementById('progressText').textContent = 'FAISS processing complete with organized output!';
+
+                processedResult = result.result;
+                displayResults(processedResult);
+
+                // Reload storage info
+                await loadStorageInfo();
+
+            } catch (error) {
+                alert('Error processing file: ' + error.message);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('processBtn').disabled = false;
+            }
+        }
+
+        async function performCrossCheck() {
+            if (!uploadedData) return;
+
+            const startTime = Date.now();
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('crossCheckBtn').disabled = true;
+
+            // Update loading text and stages for cross-check
+            document.getElementById('loadingText').textContent = 'Performing cross-check analysis against existing database...';
+            document.getElementById('stage1Text').textContent = 'Loading existing embeddings database';
+            document.getElementById('stage2Text').textContent = 'Generating embeddings for uploaded questions';
+            document.getElementById('stage3Text').textContent = 'FAISS similarity search against database';
+            document.getElementById('stage4Text').textContent = 'Saving cross-check results';
+
+            // Reset all stages
+            for (let i = 1; i <= 4; i++) {
+                updateStage(`stage${i}`, 'pending');
+            }
+
+            try {
+                updateStage('stage1', 'active');
+                document.getElementById('progressText').textContent = 'Loading existing embeddings database...';
+                document.getElementById('progressFill').style.width = '25%';
+
+                const requestData = {
+                    data: uploadedData,
+                    filename: uploadedFilename,
+                    nearDuplicateThreshold: document.getElementById('crossCheckNearThreshold').value,
+                    semanticDuplicateThreshold: document.getElementById('crossCheckSemanticThreshold').value
+                };
+
+                updateStage('stage2', 'active');
+                document.getElementById('progressFill').style.width = '50%';
+
+                updateStage('stage3', 'active');
+                document.getElementById('progressFill').style.width = '75%';
+
+                const response = await fetch('/cross-check', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+
+                // Update stages as completed
+                updateStage('stage1', 'completed');
+                updateStage('stage2', 'completed');
+                updateStage('stage3', 'completed');
+                updateStage('stage4', 'completed');
+
+                document.getElementById('progressFill').style.width = '100%';
+                document.getElementById('progressText').textContent = 'Cross-check analysis complete!';
+
+                crossCheckResult = result.result;
+                displayCrossCheckResults(crossCheckResult);
+
+            } catch (error) {
+                alert('Error performing cross-check: ' + error.message);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('crossCheckBtn').disabled = false;
+            }
+        }
+
+        function displayResults(result) {
+            const stats = result.stats;
+
+            // Update enhanced stats
+            document.getElementById('totalQuestions').textContent = stats.total_questions;
+            document.getElementById('finalUniqueQuestions').textContent = stats.final_unique_questions;
+            document.getElementById('internalDuplicates').textContent = stats.internal_duplicate_pairs;
+            document.getElementById('crossFileDuplicates').textContent = stats.cross_file_duplicate_pairs;
+            document.getElementById('existingFilesChecked').textContent = stats.existing_files_checked;
+            document.getElementById('processingTime').textContent = stats.processing_time + 's';
+
+            // Show performance improvement if available
+            if (stats.performance_improvement) {
+                document.getElementById('performanceImprovement').textContent = 
+                    `🚀 Performance Improvement: ${stats.performance_improvement}`;
+                document.getElementById('performanceImprovement').style.display = 'block';
+            }
+
+            document.getElementById('enhancedStats').style.display = 'block';
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('loading').style.display = 'none';
+
+            showDuplicatePreview(result.duplicate_report);
+            setupDownloads(result, 'process');
+        }
+
+        function displayCrossCheckResults(result) {
+            const stats = result.stats;
+
+            // Update cross-check stats
+            document.getElementById('totalUploadedQuestions').textContent = stats.total_uploaded_questions;
+            document.getElementById('totalMatchesFound').textContent = stats.total_matches_found;
+            document.getElementById('crossCheckProcessingTime').textContent = stats.processing_time + 's';
+
+            document.getElementById('crossCheckResults').style.display = 'block';
+            document.getElementById('loading').style.display = 'none';
+
+            showCrossCheckPreview(result.cross_check_results);
+            setupDownloads(result, 'crosscheck');
+        }
+
+        function showDuplicatePreview(duplicates) {
+            const previewDiv = document.getElementById('duplicatePreview');
+            const listDiv = document.getElementById('duplicateList');
+            
+            if (duplicates.length === 0) {
+                previewDiv.style.display = 'none';
+                return;
+            }
+
+            // Show first 10 duplicates as preview
+            const preview = duplicates.slice(0, 10);
+            listDiv.innerHTML = preview.map(dup => {
+                const isCrossFile = dup.CrossFile || false;
+                const badgeClass = isCrossFile ? 'cross-file-duplicate' : 'internal-duplicate';
+                const badgeText = isCrossFile ? 'Cross-File' : 'Internal';
+                const itemClass = isCrossFile ? 'duplicate-item cross-file' : 'duplicate-item';
+
+                return `
+                    <div class="${itemClass}">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <div>
+                                <span class="duplicate-type-badge ${badgeClass}">${badgeText}</span>
+                                <strong>${dup.Type}</strong>
+                                <span class="faiss-badge">FAISS</span>
+                            </div>
+                            <span class="similarity-score">${(dup.SimilarityScore * 100).toFixed(1)}% similar</span>
+                        </div>
+                        <div style="font-size: 0.9em; color: #666;">
+                            <strong>Original:</strong> ${dup.OriginalQuestion?.substring(0, 100) + '...'}<br>
+                            <strong>Duplicate:</strong> ${dup.DuplicateQuestion?.substring(0, 100) + '...'}
+                        </div>
+                        <div style="font-size: 0.8em; color: #999; margin-top: 5px;">
+                            ${isCrossFile ? 
+                                `🔗 Found in existing database with FAISS` : 
+                                `📄 Found within current file using FAISS indexing`}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            if (duplicates.length > 10) {
+                listDiv.innerHTML += `<div style="text-align: center; padding: 10px; color: #666;">
+                    ... and ${duplicates.length - 10} more FAISS-detected duplicates
+                </div>`;
+            }
+            
+            previewDiv.style.display = 'block';
+        }
+
+        function showCrossCheckPreview(crossCheckResults) {
+            const previewDiv = document.getElementById('crossCheckPreview');
+            const listDiv = document.getElementById('crossCheckList');
+            
+            if (crossCheckResults.length === 0) {
+                listDiv.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">No matches found in existing database</div>';
+                previewDiv.style.display = 'block';
+                return;
+            }
+
+            // Show first 10 matches as preview
+            const preview = crossCheckResults.slice(0, 10);
+            listDiv.innerHTML = preview.map(match => {
+                let badgeClass, badgeText;
+                
+                if (match.MatchType === 'Exact Match') {
+                    badgeClass = 'exact-match';
+                    badgeText = 'Exact';
+                } else if (match.MatchType === 'Near Match') {
+                    badgeClass = 'near-match';
+                    badgeText = 'Near';
+                } else {
+                    badgeClass = 'semantic-match';
+                    badgeText = 'Semantic';
+                }
+
+                return `
+                    <div class="cross-check-item">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <div>
+                                <span class="match-type-badge ${badgeClass}">${badgeText} Match</span>
+                                <strong>Cross-Check Result</strong>
+                                <span class="faiss-badge">FAISS</span>
+                            </div>
+                            <span class="similarity-score">${(match.SimilarityScore * 100).toFixed(1)}% similar</span>
+                        </div>
+                        <div style="font-size: 0.9em; color: #666;">
+                            <strong>New Question:</strong> ${match.NewQuestion?.substring(0, 100) + '...'}<br>
+                            <strong>Matching Question:</strong> ${match.MatchingQuestion?.substring(0, 100) + '...'}
+                        </div>
+                        <div style="font-size: 0.8em; color: #999; margin-top: 5px;">
+                            📁 Found in: ${match.SourceFile} | IDs: ${match.NewQuestionID} → ${match.MatchingQuestionID}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            if (crossCheckResults.length > 10) {
+                listDiv.innerHTML += `<div style="text-align: center; padding: 10px; color: #666;">
+                    ... and ${crossCheckResults.length - 10} more FAISS-detected matches
+                </div>`;
+            }
+            
+            previewDiv.style.display = 'block';
+        }
+
+        function setupDownloads(result, type) {
+            if (type === 'process') {
+                // Setup process result downloads
+                document.getElementById('downloadUniqueJson').onclick = function() {
+                    downloadFile('unique', 'json', result);
+                };
+
+                document.getElementById('downloadUniqueCsv').onclick = function() {
+                    downloadFile('unique', 'csv', result);
+                };
+
+                document.getElementById('downloadDuplicatesJson').onclick = function() {
+                    downloadFile('duplicates', 'json', result);
+                };
+
+                document.getElementById('downloadDuplicatesCsv').onclick = function() {
+                    downloadFile('duplicates', 'csv', result);
+                };
+
+                document.getElementById('downloadMasterUniqueJson').onclick = function() {
+                    downloadFile('master-unique', 'json', result);
+                };
+
+                document.getElementById('downloadMasterUniqueCsv').onclick = function() {
+                    downloadFile('master-unique', 'csv', result);
+                };
+
+            } else if (type === 'crosscheck') {
+                // Setup cross-check result downloads
+                document.getElementById('downloadCrossCheckJson').onclick = function() {
+                    downloadFile('cross-check', 'json', result);
+                };
+
+                document.getElementById('downloadCrossCheckCsv').onclick = function() {
+                    downloadFile('cross-check', 'csv', result);
+                };
+            }
+        }
+
+        async function downloadFile(fileType, fileFormat, result) {
+            try {
+                let requestData;
+                
+                if (fileType === 'cross-check') {
+                    requestData = {
+                        data: { cross_check_results: result.cross_check_results },
+                        filename: uploadedFilename
+                    };
+                } else {
+                    requestData = {
+                        data: result,
+                        filename: uploadedFilename
+                    };
+                }
+
+                const response = await fetch(`/download/${fileType}/${fileFormat}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    
+                    // Get filename from response headers or construct it
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    let filename;
+                    if (contentDisposition) {
+                        filename = contentDisposition.split('filename=')[1].replace(/"/g, '');
+                    } else {
+                        const baseName = uploadedFilename ? uploadedFilename.replace('.json', '') : 'questions';
+                        filename = `${fileType}_${baseName}.${fileFormat}`;
+                    }
+                    
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                } else {
+                    const error = await response.json();
+                    alert('Download failed: ' + error.error);
+                }
+            } catch (error) {
+                alert('Download failed: ' + error.message);
+            }
+        }
+
+        // Drag and drop functionality
+        const uploadSection = document.querySelector('.upload-section');
+        
+        uploadSection.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadSection.style.borderColor = '#667eea';
+            uploadSection.style.background = '#f0f2ff';
+        });
+
+        uploadSection.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadSection.style.borderColor = '#ddd';
+            uploadSection.style.background = '#f8f9fa';
+        });
+
+        uploadSection.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadSection.style.borderColor = '#ddd';
+            uploadSection.style.background = '#f8f9fa';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        // Reset functionality
+        function resetInterface() {
+            uploadedData = null;
+            uploadedFilename = null;
+            processedResult = null;
+            crossCheckResult = null;
+            
+            document.getElementById('fileInfo').style.display = 'none';
+            document.getElementById('processBtn').disabled = true;
+            document.getElementById('crossCheckBtn').disabled = true;
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('crossCheckResults').style.display = 'none';
+            document.getElementById('duplicatePreview').style.display = 'none';
+            document.getElementById('crossCheckPreview').style.display = 'none';
+            document.getElementById('enhancedStats').style.display = 'none';
+            document.getElementById('loading').style.display = 'none';
+            
+            document.getElementById('fileInput').value = '';
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + U for upload
+            if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
+                e.preventDefault();
+                document.getElementById('fileInput').click();
+            }
+            
+            // Ctrl/Cmd + P for process
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                if (!document.getElementById('processBtn').disabled) {
+                    processFile();
+                }
+            }
+            
+            // Ctrl/Cmd + R for reset
+            if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+                e.preventDefault();
+                resetInterface();
+            }
+        });
+
+        // Auto-refresh storage info every 30 seconds
+        setInterval(loadStorageInfo, 30000);
+
+        // Tooltip functionality for badges
+        document.addEventListener('DOMContentLoaded', function() {
+            const badges = document.querySelectorAll('.faiss-badge, .csv-badge');
+            badges.forEach(badge => {
+                badge.addEventListener('mouseenter', function() {
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'tooltip';
+                    tooltip.style.cssText = `
+                        position: absolute;
+                        background: #333;
+                        color: white;
+                        padding: 5px 10px;
+                        border-radius: 5px;
+                        font-size: 0.8em;
+                        z-index: 1000;
+                        pointer-events: none;
+                    `;
+                    
+                    if (badge.classList.contains('faiss-badge')) {
+                        tooltip.textContent = 'Powered by Facebook AI Similarity Search (FAISS) for ultra-fast vector similarity';
+                    } else if (badge.classList.contains('csv-badge')) {
+                        tooltip.textContent = 'Available in CSV format for spreadsheet analysis and data processing';
+                    }
+                    
+                    document.body.appendChild(tooltip);
+                    
+                    const updatePosition = (e) => {
+                        tooltip.style.left = e.pageX + 10 + 'px';
+                        tooltip.style.top = e.pageY - 30 + 'px';
+                    };
+                    
+                    updatePosition(event);
+                    badge.addEventListener('mousemove', updatePosition);
+                    
+                    badge.addEventListener('mouseleave', function() {
+                        document.body.removeChild(tooltip);
+                    }, { once: true });
+                });
+            });
+        });
+
+        // Progress animation
+        function animateProgress(targetWidth, duration = 1000) {
+            const progressFill = document.getElementById('progressFill');
+            const startWidth = parseInt(progressFill.style.width) || 0;
+            const startTime = Date.now();
+            
+            function updateProgress() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const currentWidth = startWidth + (targetWidth - startWidth) * progress;
+                
+                progressFill.style.width = currentWidth + '%';
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateProgress);
+                }
+            }
+            
+            requestAnimationFrame(updateProgress);
+        }
+
+        // Enhanced error handling
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+            // You could add user-friendly error reporting here
+        });
+
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Unhandled promise rejection:', e.reason);
+            // You could add user-friendly error reporting here
+        });
+    </script>
+</body>
+</html>
