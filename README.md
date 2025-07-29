@@ -379,7 +379,6 @@ pip install faiss-cpu  # or faiss-gpu for GPU acceleration
 python app.py
 ```
 
-## 🐛 Troubleshooting
 
 ## 🐛 Troubleshooting
 
