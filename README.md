@@ -168,8 +168,9 @@ The conversion script also:
 ```bash
 python app.py
 ```
+you can run the naive code -> app(old).py along with its index file -> index(old).html
 
-The application will be available at `http://localhost:5005`
+The application will be available at `http://localhost:5000`
 
 ### Input File Format
 
