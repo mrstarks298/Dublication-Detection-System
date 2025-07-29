@@ -1,0 +1,822 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Cross-File Duplicate Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .storage-info {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .storage-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .storage-stat {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px dashed #ddd;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e8;
+            border-radius: 10px;
+            color: #2e7d32;
+        }
+
+        .settings {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .setting-group {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .setting-group h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .threshold-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .process-btn {
+            background: linear-gradient(135deg, #00b894, #00a085);
+            color: white;
+            padding: 18px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2em;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .process-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #fd79a8, #e84393);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .duplicate-preview {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .duplicate-item {
+            background: #f8f9fa;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .duplicate-item.cross-file {
+            border-left-color: #e74c3c;
+            background: #fdf2f2;
+        }
+
+        .duplicate-type-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .internal-duplicate {
+            background: #3498db;
+            color: white;
+        }
+
+        .cross-file-duplicate {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .similarity-score {
+            background: #e3f2fd;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #1976d2;
+            font-weight: bold;
+        }
+
+        .processing-stages {
+            margin-top: 20px;
+        }
+
+        .stage {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .stage.active {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .stage.completed {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .stage-icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .enhanced-stats {
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .enhanced-stats h3 {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .comparison-table {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .comparison-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Enhanced Cross-File Duplicate Detection</h1>
+            <p>Advanced semantic similarity with persistent storage and cross-file comparison</p>
+        </div>
+
+        <div class="main-content">
+            <div class="storage-info" id="storageInfo">
+                <h3>📂 Storage Information</h3>
+                <p>Loading storage information...</p>
+                <div class="storage-stats" id="storageStats"></div>
+            </div>
+
+            <div class="upload-section">
+                <h2>📁 Upload Questions File</h2>
+                <p>Drop your JSON file here or click to browse</p>
+                <p style="font-size: 0.9em; color: #666; margin-top: 10px;">
+                    The system will check for duplicates within this file AND against all previously stored unique questions.
+                </p>
+                <input type="file" id="fileInput" class="file-input" accept=".json">
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    Choose File
+                </button>
+                <div id="fileInfo" class="file-info" style="display: none;"></div>
+            </div>
+
+            <div class="settings">
+                <div class="setting-group">
+                    <h3>🎯 Question Similarity Thresholds</h3>
+                    <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">
+                        Only question similarity will be checked. Solutions are ignored.
+                    </p>
+                    <label>Near Duplicate Threshold:</label>
+                    <input type="number" class="threshold-input" id="nearDuplicateThreshold" 
+                           value="0.85" min="0" max="1" step="0.01">
+                    <small style="color: #666;">Questions with similarity ≥ 85% are considered near duplicates</small>
+                    
+                    <label style="margin-top: 10px;">Semantic Duplicate Threshold:</label>
+                    <input type="number" class="threshold-input" id="semanticDuplicateThreshold" 
+                           value="0.70" min="0" max="1" step="0.01">
+                    <small style="color: #666;">Questions with similarity ≥ 70% are considered semantic duplicates</small>
+                </div>
+
+                <div class="setting-group">
+                    <h3>ℹ️ Processing Information</h3>
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; color: #1976d2;">
+                        <h4>What's being compared:</h4>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>✅ Question text similarity</li>
+                            <li>❌ Solution similarity (ignored)</li>
+                        </ul>
+                        <p style="margin-top: 10px; font-size: 0.9em;">
+                            This speeds up processing and focuses on question content only.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <button class="process-btn" id="processBtn" onclick="processFile()" disabled>
+                🚀 Process File with Cross-File Comparison
+            </button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing your questions... This may take a few moments.</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div id="progressText">Initializing...</div>
+                
+                <div class="processing-stages" id="processingStages">
+                    <div class="stage" id="stage1">
+                        <span class="stage-icon">⏳</span>
+                        <span>Processing internal duplicates</span>
+                    </div>
+                    <div class="stage" id="stage2">
+                        <span class="stage-icon">⏳</span>
+                        <span>Loading existing unique questions</span>
+                    </div>
+                    <div class="stage" id="stage3">
+                        <span class="stage-icon">⏳</span>
+                        <span>Finding cross-file duplicates</span>
+                    </div>
+                    <div class="stage" id="stage4">
+                        <span class="stage-icon">⏳</span>
+                        <span>Saving results to storage</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="enhanced-stats" id="enhancedStats" style="display: none;">
+                <h3>📊 Processing Results</h3>
+                <div class="comparison-table">
+                    <div class="comparison-item">
+                        <div style="font-size: 2em; font-weight: bold;" id="totalQuestions">0</div>
+                        <div>Total Questions</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div style="font-size: 2em; font-weight: bold;" id="finalUniqueQuestions">0</div>
+                        <div>Final Unique Questions</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div style="font-size: 2em; font-weight: bold;" id="internalDuplicates">0</div>
+                        <div>Internal Duplicates</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div style="font-size: 2em; font-weight: bold;" id="crossFileDuplicates">0</div>
+                        <div>Cross-File Duplicates</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div style="font-size: 2em; font-weight: bold;" id="existingFilesChecked">0</div>
+                        <div>Existing Files Checked</div>
+                    </div>
+                    <div class="comparison-item">
+                        <div style="font-size: 2em; font-weight: bold;" id="processingTime">0s</div>
+                        <div>Processing Time</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats" id="stats" style="display: none;">
+                <div class="stat-item">
+                    <div class="stat-number" id="questionsRemovedInternal">0</div>
+                    <div class="stat-label">Questions Removed (Internal)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="questionsRemovedCrossFile">0</div>
+                    <div class="stat-label">Questions Removed (Cross-File)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="uniqueQuestionsInternal">0</div>
+                    <div class="stat-label">Unique After Internal Check</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="totalQuestionsRemoved">0</div>
+                    <div class="stat-label">Total Questions Removed</div>
+                </div>
+            </div>
+
+            <div class="results" id="results">
+                <div class="result-card">
+                    <h3>📋 Current File Unique Questions</h3>
+                    <p>Unique questions from current file after all duplicate removal</p>
+                    <button class="download-btn" id="downloadUnique">
+                        ⬇️ Download Current Unique
+                    </button>
+                </div>
+
+                <div class="result-card">
+                    <h3>🔄 Duplicate Report</h3>
+                    <p>Detailed analysis of internal and cross-file duplicates</p>
+                    <button class="download-btn" id="downloadDuplicates">
+                        ⬇️ Download Duplicate Report
+                    </button>
+                </div>
+
+                <div class="result-card">
+                    <h3>🌟 Master Unique Collection</h3>
+                    <p>All unique questions from all processed files combined</p>
+                    <button class="download-btn" id="downloadMasterUnique">
+                        ⬇️ Download Master Collection
+                    </button>
+                </div>
+            </div>
+
+            <div class="duplicate-preview" id="duplicatePreview" style="display: none;">
+                <h3>🔍 Found Duplicates Preview</h3>
+                <div id="duplicateList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let uploadedData = null;
+        let uploadedFilename = null;
+        let processedResult = null;
+
+        // Load storage information on page load
+        document.addEventListener('DOMContentLoaded', loadStorageInfo);
+
+        async function loadStorageInfo() {
+            try {
+                const response = await fetch('/storage-info');
+                const data = await response.json();
+                
+                if (data.error) {
+                    document.getElementById('storageInfo').innerHTML = `
+                        <h3>📂 Storage Information</h3>
+                        <p style="color: #e74c3c;">Error loading storage info: ${data.error}</p>
+                    `;
+                    return;
+                }
+
+                document.getElementById('storageStats').innerHTML = `
+                    <div class="storage-stat">
+                        <div style="font-size: 1.5em; font-weight: bold;">${data.unique_files_count}</div>
+                        <div>Unique Files Stored</div>
+                    </div>
+                    <div class="storage-stat">
+                        <div style="font-size: 1.5em; font-weight: bold;">${data.total_unique_questions}</div>
+                        <div>Total Unique Questions</div>
+                    </div>
+                    <div class="storage-stat">
+                        <div style="font-size: 1.5em; font-weight: bold;">${data.duplicate_files_count}</div>
+                        <div>Duplicate Reports</div>
+                    </div>
+                `;
+
+                document.getElementById('storageInfo').innerHTML = `
+                    <h3>📂 Storage Information</h3>
+                    <p>Current database contains ${data.total_unique_questions} unique questions from ${data.unique_files_count} files</p>
+                    <div class="storage-stats" id="storageStats">${document.getElementById('storageStats').innerHTML}</div>
+                `;
+
+            } catch (error) {
+                console.error('Error loading storage info:', error);
+                document.getElementById('storageInfo').innerHTML = `
+                    <h3>📂 Storage Information</h3>
+                    <p style="color: #e74c3c;">Failed to load storage information</p>
+                `;
+            }
+        }
+
+        // File upload handling
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        async function handleFile(file) {
+            if (!file.name.endsWith('.json')) {
+                alert('Please upload a JSON file');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    alert('Error: ' + result.error);
+                    return;
+                }
+
+                uploadedData = result.data;
+                uploadedFilename = result.filename;
+
+                document.getElementById('fileInfo').innerHTML = `
+                    ✅ File loaded successfully<br>
+                    📊 ${result.question_count} questions found<br>
+                    📁 Filename: ${result.filename}
+                `;
+                document.getElementById('fileInfo').style.display = 'block';
+                document.getElementById('processBtn').disabled = false;
+
+            } catch (error) {
+                alert('Error uploading file: ' + error.message);
+            }
+        }
+
+        function updateStage(stageId, status) {
+            const stage = document.getElementById(stageId);
+            const icon = stage.querySelector('.stage-icon');
+            
+            stage.classList.remove('active', 'completed');
+            
+            if (status === 'active') {
+                stage.classList.add('active');
+                icon.textContent = '⚡';
+            } else if (status === 'completed') {
+                stage.classList.add('completed');
+                icon.textContent = '✅';
+            } else {
+                icon.textContent = '⏳';
+            }
+        }
+
+        async function processFile() {
+            if (!uploadedData) return;
+
+            const startTime = Date.now();
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('processBtn').disabled = true;
+
+            // Reset all stages
+            for (let i = 1; i <= 4; i++) {
+                updateStage(`stage${i}`, 'pending');
+            }
+
+            try {
+                updateStage('stage1', 'active');
+                document.getElementById('progressText').textContent = 'Processing internal duplicates...';
+                document.getElementById('progressFill').style.width = '25%';
+
+                const requestData = {
+                    data: uploadedData,
+                    filename: uploadedFilename,
+                    nearDuplicateThreshold: document.getElementById('nearDuplicateThreshold').value,
+                    semanticDuplicateThreshold: document.getElementById('semanticDuplicateThreshold').value
+                };
+
+                const response = await fetch('/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+
+                // Update stages as completed
+                updateStage('stage1', 'completed');
+                updateStage('stage2', 'completed');
+                updateStage('stage3', 'completed');
+                updateStage('stage4', 'completed');
+
+                document.getElementById('progressFill').style.width = '100%';
+                document.getElementById('progressText').textContent = 'Processing complete!';
+
+                processedResult = result.result;
+                displayResults(processedResult);
+
+                // Reload storage info
+                await loadStorageInfo();
+
+            } catch (error) {
+                alert('Error processing file: ' + error.message);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('processBtn').disabled = false;
+            }
+        }
+
+        function displayResults(result) {
+            const stats = result.stats;
+
+            // Update enhanced stats
+            document.getElementById('totalQuestions').textContent = stats.total_questions;
+            document.getElementById('finalUniqueQuestions').textContent = stats.final_unique_questions;
+            document.getElementById('internalDuplicates').textContent = stats.internal_duplicate_pairs;
+            document.getElementById('crossFileDuplicates').textContent = stats.cross_file_duplicate_pairs;
+            document.getElementById('existingFilesChecked').textContent = stats.existing_files_checked;
+            document.getElementById('processingTime').textContent = stats.processing_time + 's';
+
+            // Update detailed stats
+            document.getElementById('questionsRemovedInternal').textContent = stats.questions_removed_internal;
+            document.getElementById('questionsRemovedCrossFile').textContent = stats.questions_removed_cross_file;
+            document.getElementById('uniqueQuestionsInternal').textContent = stats.unique_questions_after_internal;
+            document.getElementById('totalQuestionsRemoved').textContent = stats.total_questions_removed;
+
+            document.getElementById('enhancedStats').style.display = 'block';
+            document.getElementById('stats').style.display = 'grid';
+            document.getElementById('results').style.display = 'grid';
+            document.getElementById('loading').style.display = 'none';
+
+            showDuplicatePreview(result.duplicate_report);
+            setupDownloads(result);
+        }
+
+        function showDuplicatePreview(duplicates) {
+            const previewDiv = document.getElementById('duplicatePreview');
+            const listDiv = document.getElementById('duplicateList');
+            
+            if (duplicates.length === 0) {
+                previewDiv.style.display = 'none';
+                return;
+            }
+
+            // Show first 15 duplicates as preview
+            const preview = duplicates.slice(0, 15);
+            listDiv.innerHTML = preview.map(dup => {
+                const isCrossFile = dup.CrossFile || false;
+                const badgeClass = isCrossFile ? 'cross-file-duplicate' : 'internal-duplicate';
+                const badgeText = isCrossFile ? 'Cross-File' : 'Internal';
+                const itemClass = isCrossFile ? 'duplicate-item cross-file' : 'duplicate-item';
+
+                return `
+                    <div class="${itemClass}">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <div>
+                                <span class="duplicate-type-badge ${badgeClass}">${badgeText}</span>
+                                <strong>Question Duplicate</strong>
+                            </div>
+                            <span class="similarity-score">${(dup.SimilarityScore * 100).toFixed(1)}% similar</span>
+                        </div>
+                        <div style="font-size: 0.9em; color: #666;">
+                            <strong>Original:</strong> ${dup.OriginalQuestion?.substring(0, 100) + '...'}<br>
+                            <strong>Duplicate:</strong> ${dup.DuplicateQuestion?.substring(0, 100) + '...'}
+                        </div>
+                        <div style="font-size: 0.8em; color: #999; margin-top: 5px;">
+                            ${isCrossFile ? 
+                                `🔗 Found in existing database` : 
+                                `📄 Found within current file`}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            if (duplicates.length > 15) {
+                listDiv.innerHTML += `<div style="text-align: center; padding: 10px; color: #666;">
+                    ... and ${duplicates.length - 15} more duplicates
+                </div>`;
+            }
+            
+            previewDiv.style.display = 'block';
+        }
+
+        function setupDownloads(result) {
+            document.getElementById('downloadUnique').onclick = function() {
+                downloadJSON(result.unique_questions, `${uploadedFilename}_unique.json`);
+            };
+
+            document.getElementById('downloadDuplicates').onclick = function() {
+                downloadJSON(result.duplicate_report, `${uploadedFilename}_duplicates.json`);
+            };
+
+            document.getElementById('downloadMasterUnique').onclick = async function() {
+                try {
+                    const response = await fetch('/download/master-unique', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ data: result })
+                    });
+
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'master_unique_questions.json';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    } else {
+                        const error = await response.json();
+                        alert('Download failed: ' + error.error);
+                    }
+                } catch (error) {
+                    alert('Download failed: ' + error.message);
+                }
+            };
+        }
+
+        function downloadJSON(data, filename) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
