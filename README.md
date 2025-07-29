@@ -92,7 +92,7 @@ pandas==2.0.3
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/question-deduplication-system.git
+git clone https://github.com/mrstarks298/Dublication-Detection-System.git
 cd question-deduplication-system
 ```
 
