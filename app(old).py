@@ -273,7 +273,7 @@ def save_results(filename, unique_questions, all_duplicates, stats):
 @app.route('/')
 def index():
     """Serve the main page"""
-    return render_template('index.html')
+    return render_template('index(old).html')
 
 @app.route('/storage-info')
 def storage_info():
